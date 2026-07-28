@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ES">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAKOUT: LA MAZMORRA DEL DRAGÓN CATASTRAL</title>
+    <!-- FUENTE MONTSERRAT -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #090d16 0%, #111827 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #1f2937;
+            border: 3px solid #f59e0b;
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #fbbf24;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+
+        .btn {
+            background-color: #d97706;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 8px 0;
+            width: 100%;
+            display: block;
+        }
+
+        .btn:hover {
+            background-color: #b45309;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #4b5563;
+        }
+
+        .btn-secondary:hover {
+            background-color: #374151;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 2px solid #fbbf24;
+            background-color: #111827;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* PANTALLA DE DRAGÓN Y GEMAS */
+        .dragon-area {
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #374151;
+            position: relative;
+        }
+
+        .battle-arena {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 10px;
+            min-height: 90px;
+        }
+
+        .knight-avatar {
+            font-size: 60px;
+            transition: all 0.5s ease;
+            display: inline-block;
+        }
+
+        .dragon-avatar {
+            font-size: 65px;
+            transition: all 0.5s ease;
+            display: inline-block;
+        }
+
+        .gems-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .gem {
+            font-size: 28px;
+            opacity: 0.2;
+            filter: grayscale(100%);
+            transition: all 0.5s ease;
+        }
+
+        .gem.acquired {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.3);
+            text-shadow: 0 0 15px #38bdf8;
+        }
+
+        .option-btn {
+            background-color: #374151;
+            text-align: left;
+            border: 2px solid #4b5563;
+        }
+
+        .option-btn:hover {
+            border-color: #fbbf24;
+            background-color: #1f2937;
+        }
+
+        .correct {
+            background-color: #15803d !important;
+            border-color: #22c55e !important;
+            color: white;
+        }
+
+        .incorrect {
+            background-color: #b91c1c !important;
+            border-color: #ef4444 !important;
+            color: white;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .timer {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: white;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #4b5563;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #d97706;
+        }
+
+        tr:nth-child(even) {
+            background-color: #111827;
+        }
+
+        /* ANIMACIONES Y BATTLES */
+        .hit-dragon {
+            animation: shake 0.5s;
+        }
+
+        .fire-dragon {
+            animation: burn 0.8s infinite alternate;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(5deg); }
+            40% { transform: translate(1px, -1px) rotate(-5deg); }
+            60% { transform: translate(-3px, 1px) rotate(3deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
+        }
+
+        @keyframes burn {
+            0% { text-shadow: 0 0 10px #f97316; transform: scale(1); }
+            100% { text-shadow: 0 0 30px #ef4444; transform: scale(1.15); }
+        }
+
+        .fire-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.85) 0%, rgba(249, 115, 22, 0.7) 50%, rgba(0, 0, 0, 0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .fire-overlay.active-fire {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .sword-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.85) 0%, rgba(30, 58, 138, 0.7) 50%, rgba(0, 0, 0, 0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .sword-overlay.active-sword {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ANIMACIÓN CABALLERO SLAYING DRAGON */
+        .knight-attack-anim {
+            animation: knightLunge 1.5s forwards;
+        }
+
+        .dragon-death-anim {
+            animation: dragonDie 1.5s forwards;
+        }
+
+        @keyframes knightLunge {
+            0% { transform: translateX(0) scale(1); }
+            30% { transform: translateX(-20px) scale(1.2); }
+            60% { transform: translateX(120px) scale(1.5) rotate(15deg); }
+            100% { transform: translateX(100px) scale(1.3) rotate(0deg); }
+        }
+
+        @keyframes dragonDie {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            40% { transform: scale(1.3) rotate(-30deg); filter: sepia(100%) hue-rotate(90deg) saturate(300%); }
+            100% { transform: scale(0) rotate(180deg); filter: grayscale(100%); opacity: 0; }
+        }
+
+        /* ANIMACIÓN DRAGON BURNING KNIGHT */
+        .dragon-fire-anim {
+            animation: dragonBlast 1.5s forwards;
+        }
+
+        .knight-burn-anim {
+            animation: knightBurn 1.5s forwards;
+        }
+
+        @keyframes dragonBlast {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.4) rotate(-10deg); }
+            100% { transform: scale(1.2); }
+        }
+
+        @keyframes knightBurn {
+            0% { transform: scale(1); filter: none; }
+            25% { transform: scale(1.2) rotate(10deg); filter: sepia(100%) hue-rotate(-50deg) saturate(600%); }
+            60% { transform: scale(1.1) rotate(-10deg); filter: brightness(0.2) drop-shadow(0 0 10px #ef4444); }
+            100% { transform: scale(0.5) translateY(20px); opacity: 0.2; filter: grayscale(100%); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+
+    <!-- OVERLAYS INTERACTIVOS DE ATAQUE FINAL -->
+    <div id="fire-overlay" class="fire-overlay">
+        <div style="font-size: 80px;" class="dragon-fire-anim">🐉🔥</div>
+        <div style="font-size: 70px; margin-top: 20px;" class="knight-burn-anim">🤺🔥💀</div>
+        <h2 style="color: #ef4444; margin-top: 15px;">¡EL CABALLERO HA SIDO QUEMADO POR EL DRAGÓN!</h2>
+    </div>
+
+    <div id="sword-overlay" class="sword-overlay">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="font-size: 80px;" class="knight-attack-anim">🤺⚔️</div>
+            <div style="font-size: 80px;" class="dragon-death-anim">🐉⚡</div>
+        </div>
+        <h2 style="color: #38bdf8; margin-top: 25px;">¡EL CABALLERO HA DERROTADO AL DRAGÓN!</h2>
+    </div>
+
+    <!-- PANTALLA 1: REGISTRO Y SELECCIÓN DE ÁREA -->
+    <div id="screen-welcome" class="screen active">
+        <h1>BREAKOUT: LA MAZMORRA DEL DRAGÓN CATASTRAL</h1>
+        <div style="font-size: 65px; margin: 10px 0;">🤺 ⚔️ 🐉</div>
+        <p>TOMA EL ROL DEL <strong>CABALLERO CATASTRAL</strong> Y ENFRENTA AL DRAGÓN QUE CUSTODIA LA SALIDA. DEBES REUNIR AL MENOS <strong>4 DE LAS 5 GEMAS DEL SABER</strong> PARA VENCERLO.</p>
+        <p style="color: #ef4444; font-weight: bold;">¡SI REÚNES 4 O 5 GEMAS, ASINARÁS EL GOLPE DE LUZ Y EL CABALLERO MATARÁ AL DRAGÓN! PERO SI OBTIENES MENOS DE 4 GEMAS... ¡EL DRAGÓN DESATARÁ SU RÁFAGA CATASTRAL Y QUEMARÁ AL CABALLERO!</p>
+        
+        <input type="text" id="player-name" placeholder="INGRESA TU NOMBRE COMPLETO..." required>
+
+        <h2>¿A QUÉ ÁREA PERTENECES?</h2>
+        <button class="btn" onclick="startGame('GCAC')">GERENCIA COMERCIAL Y ATENCIÓN AL CIUDADANO (GCAC)</button>
+        <button class="btn btn-secondary" onclick="startGame('SPAC')">SUBDIRECCIÓN DE ATENCIÓN A CANALES (SPAC)</button>
+    </div>
+
+    <!-- PANTALLA 2: JUEGO CON DRAGÓN Y GEMAS -->
+    <div id="screen-game" class="screen">
+        <div id="quiz-header">
+            <h2 id="question-number">ENIGMA 1 DE 5</h2>
+            <div class="timer" id="timer">TIEMPO: 0S</div>
+        </div>
+
+        <!-- ÁREA DE BATALLA ENTRE CABALLERO Y DRAGÓN -->
+        <div class="dragon-area">
+            <div class="battle-arena">
+                <div id="knight-icon" class="knight-avatar">🤺</div>
+                <div style="font-size: 24px;">⚔️</div>
+                <div id="dragon-icon" class="dragon-avatar">🐉</div>
+            </div>
+            
+            <div style="font-size: 12px; font-weight: bold; color: #fbbf24;">GEMAS REUNIDAS: <span id="gems-count">0</span> / 5</div>
+            <div class="gems-container">
+                <span id="gem-1" class="gem">💎</span>
+                <span id="gem-2" class="gem">💎</span>
+                <span id="gem-3" class="gem">💎</span>
+                <span id="gem-4" class="gem">💎</span>
+                <span id="gem-5" class="gem">💎</span>
+            </div>
+        </div>
+        
+        <p id="question-text" style="font-size: 15px; font-weight: bold; color: #38bdf8; margin-bottom: 15px;"></p>
+        
+        <div id="options-container"></div>
+
+        <div id="feedback" class="feedback-box"></div>
+
+        <button id="next-btn" class="btn" style="display: none; margin-top: 15px;" onclick="nextQuestion()">SIGUIENTE ENIGMA</button>
+    </div>
+
+    <!-- PANTALLA 3: RESULTADOS (VICTORIA O DERROTA) -->
+    <div id="screen-results" class="screen">
+        <div id="final-animation" style="font-size: 80px; margin-bottom: 10px;"></div>
+        <h1 id="result-title"></h1>
+        <p id="final-stats"></p>
+
+        <h2>REGISTRO DE LA PARTIDA</h2>
+        <div id="save-status" class="feedback-box" style="display:block; background:#111827; border:1px solid #4b5563; color:#fbbf24;">GUARDANDO RESULTADO...</div>
+        <p style="margin-top:15px;">LOS RESULTADOS GENERALES SON PRIVADOS Y SE CONSULTAN DESDE EL PANEL ADMINISTRATIVO.</p>
+        <button class="btn btn-secondary" onclick="restartGame()">VOLVER AL INICIO</button>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://gxltcysusgkulroxnleb.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_EHJDqnbm0pB4yuVJSU26Mg_x-_LsKWF";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let resultSaved = false;
+
+// BANCO DE PREGUNTAS COMPLETO DESDE EXCEL
+const ALL_QUESTIONS = [
+  {
+    id: 1,
+    pregunta: "EN CUAL INSTRUCTIVO ESTA LA ACTIVIDAD \"IDENTIFICAR LA RELACIÓN DEL SOLICITANTE CON EL PREDIO Y REVISAR LOS REQUISITOS DE LO ACREDITEN\"",
+    correcta: "INSTRUCTIVO CALIDAD DEL SOLICITANTE",
+    opciones: ["INSTRUCTIVO CALIDAD DEL SOLICITANTE", "INSTRUCTIVO RADICACIÓN MASIVA DE TRÁMITES NO INMEDIATOS RECIBIDOS POR CORRESPONDENCIA", "INSTRUCTIVO GENERAR CERTIFICACIÓN CATASTRAL O CERTIFICADO INSCRIPCIÓN EN EL CENSO CATASTRAL", "NINGUNA DE LAS ANTERIORES"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 2,
+    pregunta: "SEGUN EL INSTRUCTIVO \"GESTIÓN DE RADICACIONES PENDIENTES POR DOCUMENTOS, AUTOS DE ARCHIVO Y RECURSOS\", CUAL ES EL NUMERO DE LA ACTIVIDAD TRANSFERENCIA AUTO DE ARCHIVO",
+    correcta: "206",
+    opciones: ["206", "120", "207", "46"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 3,
+    pregunta: "EL EQUIPO DE NOTIFICACIONES O \"ENTREGAS\", EMPLEA PARA SU LABOR ESTOS DOS INSTRUCTIVOS:",
+    correcta: "INSTRUCTIVO NOTIFICACION ELECTRONICA E INSTRUCTIVO NOTIFICACIÓN PERSONAL – NOTIFICACIÓN POR AVISO - PUBLICACIÓN NOTIFICACIÓN POR AVISO",
+    opciones: ["INSTRUCTIVO NOTIFICACION ELECTRONICA E INSTRUCTIVO NOTIFICACIÓN PERSONAL – NOTIFICACIÓN POR AVISO - PUBLICACIÓN NOTIFICACIÓN POR AVISO", "INSTRUCTIVO CONTIGENCIA ATENCIÓN SIN SISTEMAS DE INFORMACIÓN E INSTRUCTIVO NOTIFICACIÓN POR AVISO", "INSTRUCTIVO NOTIFICACIÓN PERSONAL E INSTRUCTIVO RADICACIÓN MASIVA DE TRÁMITES NO INMEDIATOS RECIBIDOS POR CORRESPONDENCIA"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 4,
+    pregunta: "EL INSTRUCTIVO CUYO OBJETIVO ES \"ATENDER LAS RADICACIONES DEVUELTAS POR LAS ÁREAS TÉCNICAS CORRESPONDIENTES A TRÁMITES NO INMEDIATOS...\" CORRESPONDE A:",
+    correcta: "INSTRUCTIVO GESTIÓN DE DEVOLUCIONES Y CORRECCIONES",
+    opciones: ["INSTRUCTIVO GESTIÓN DE DEVOLUCIONES Y CORRECCIONES", "INSTRUCTIVO GESTIÓN DE RADICACIONES PENDIENTES POR DOCUMENTOS, AUTOS DE ARCHIVO Y RECURSOS", "INSTRUCTIVO CONTIGENCIA ATENCIÓN SIN SISTEMAS DE INFORMACIÓN E INSTRUCTIVO NOTIFICACIÓN POR AVISO", "NINGUNA DE LAS ANTERIORES"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 5,
+    pregunta: "LA ACTIVIDAD \"ATENDER, ASESORAR Y CONOCER LA NECESIDAD DEL CLIENTE EN EL PUNTO DE VENTA Y ESCUCHAR CUÁL ES SU NECESIDAD FRENTE A LA ADQUISICIÓN DE UN PRODUCTO Y/O SERVICIO...\" SE ENCUENTRA EN EL INSTRUCTIVO:",
+    correcta: "INSTRUCTIVO DE VENTA DIRECTA",
+    opciones: ["INSTRUCTIVO DE VENTA DIRECTA", "INSTRUCTIVO DE VENTA ACUERDOS COMERCIALES", "INSTRUCTIVO DE FACTURACION", "NINGUNA DE LAS ANTERIORES"],
+    comercial: true,
+    rosada: true
+  },
+  {
+    id: 6,
+    pregunta: "CUANTOS FORMATOS SE ENCUENTRAN VIGENTES EN EL PROCESO DE \"RELACIONAMIENTO ESTRATÉGICO\"?",
+    correcta: "18",
+    opciones: ["18", "10", "28", "NINGUNA DE LAS ANTERIORES"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 7,
+    pregunta: "SELECCIONE EL PROCESO AL CUAL PERTENCEN LA SPAC Y LA GCAC EN LA CADENA DE VALOR",
+    correcta: "RELACIONAMIENTO ESTRATÉGICO",
+    opciones: ["RELACIONAMIENTO ESTRATÉGICO", "GESTIÓN ESTRATEGICA DE PERSONAS", "DIRECCIONAMIENTO ESTRATEGICO", "NINGUNA DE LAS ANTERIORES"],
+    comercial: true,
+    rosada: false
+  },
+  {
+    id: 8,
+    pregunta: "EL FORMATO VIGENTE DE \"OFICIO\" ES:",
+    correcta: "GDOC-07-FR-01  V.1",
+    opciones: ["GDOC-07-FR-01  V.1", "GDOC-04-FR-01  V1", "GDOC-07-FR-01  V.2", "NINGUNA DE LAS ANTERIORES"],
+    comercial: true,
+    rosada: false
+  },
+  {
+    id: 9,
+    pregunta: "¿CUÁL ES EL OBJETIVO DEL PROCEDIMIENTO REES-PR-04?",
+    correcta: "ATENDER, RADICAR Y DAR RESPUESTA A SOLICITUDES RELACIONADAS CON TRÁMITES CATASTRALES.",
+    opciones: ["ATENDER, RADICAR Y DAR RESPUESTA A SOLICITUDES RELACIONADAS CON TRÁMITES CATASTRALES.", "GESTIONAR LA SATISFACCIÓN DE LOS CIUDADANOS", "MEDIR LA CALIDAD DE LOS CANALES DE ATENCIÓN.", "GESTIONAR LAS COMUNICACIONES OFICIALES."],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 10,
+    pregunta: "CUÁL ES EL DOCUMENTO GUIA PARA RECIBIR, TRASLADAR, ASIGNAR, ATENDER Y DAR RESPUESTA A LAS PETICIONES, QUEJAS, RECLAMOS, SUGERENCIAS...",
+    correcta: "PROCEDIMIENTO ATENCIÓN PQRS",
+    opciones: ["PROCEDIMIENTO ATENCIÓN PQRS", "INSTRUCTIVO GESTIÓN DE BTE", "DOCUMENTO TECNICO DE ATENCION PQRS", "NINGUNA DE LAS ANTERIORES"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 11,
+    pregunta: "¿CUÁL ES EL OBJETIVO PRINCIPAL DEL PROCEDIMIENTO REES-PR-12?",
+    correcta: "COMERCIALIZAR Y FORMALIZAR LA VENTA DE PRODUCTOS Y SERVICIOS CATASTRALES",
+    opciones: ["COMERCIALIZAR Y FORMALIZAR LA VENTA DE PRODUCTOS Y SERVICIOS CATASTRALES", "GESTIONAR LAS PQRS DE LA ENTIDAD.", "GESTIONAR LA CONTRATACIÓN INTERNA.", "ADMINISTRAR LA INFORMACIÓN GEOGRÁFICA."],
+    comercial: true,
+    rosada: true
+  },
+  {
+    id: 12,
+    pregunta: "CUAL ES EL CÓDIGO DEL PROCEDIMIENTO \" PROCEDIMIENTO ACCESO Y DISPOSICIÓN DE INFORMACIÓN \"",
+    correcta: "REES-PR-09",
+    opciones: ["REES-PR-09", "REES-IN-09", "REES-FR-09", "REES-PR-08"],
+    comercial: true,
+    rosada: true
+  },
+  {
+    id: 13,
+    pregunta: "CUAL ES EL NOMBRE DEL DOCUMENTO IDENTIFICADO CON EL CÓDIGO REES-DT-07",
+    correcta: "DOCUMENTO TÉCNICO ESTRATEGIA COMERCIAL Y DE MERCADEO",
+    opciones: ["DOCUMENTO TÉCNICO ESTRATEGIA COMERCIAL Y DE MERCADEO", "DOCUMENTO TÉCNICO MANUAL DE MARCA CATASTRAL", "DOCUMENTO TÉCNICO MANUAL DE MARCA GO CATASTRAL", "NINGUNA DE LAS ANTERIORES"],
+    comercial: false,
+    rosada: false
+  },
+  {
+    id: 14,
+    pregunta: "A QUE HACE REFERENCIA EL SIGUIENTE CÓDIGO \"REES-PR-##\"",
+    correcta: "RELACIONAMIENTO ESTRATÉGICO - PROCEDIMIENTO - \"# CONSECUTIVO\"",
+    opciones: ["RELACIONAMIENTO ESTRATÉGICO - PROCEDIMIENTO - \"# CONSECUTIVO\"", "RELACIONAMIENTO ESTRATÉGICO - PUNTO DE REFERENCIA - \"# CONSECUTIVO\"", "REPOSITORIO ESTRATEGICO - PROCEDIMIENTO - \"# CONSECUTIVO\"", "NINGUNO DE LOS ANTERIOIRES"],
+    comercial: false,
+    rosada: false
+  }
+];
+
+let selectedQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let gemsCollected = 0;
+let playerName = "";
+let playerArea = "";
+let timerInterval;
+let secondsElapsed = 0;
+
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+function startGame(area) {
+    playerName = document.getElementById('player-name').value.trim();
+    if (!playerName) {
+        alert("POR FAVOR, INGRESA TU NOMBRE ANTES DE COMENZAR.");
+        return;
+    }
+    playerArea = area;
+
+    let availableQuestions = [];
+    if (area === 'GCAC') {
+        availableQuestions = ALL_QUESTIONS.filter(q => q.comercial === true);
+    } else if (area === 'SPAC') {
+        availableQuestions = ALL_QUESTIONS.filter(q => q.rosada === false);
+    }
+
+    selectedQuestions = shuffleArray(availableQuestions).slice(0, 5);
+    
+    currentIndex = 0;
+    score = 0;
+    gemsCollected = 0;
+    secondsElapsed = 0;
+
+    for(let i = 1; i <= 5; i++) {
+        document.getElementById(`gem-${i}`).classList.remove('acquired');
+    }
+    document.getElementById('gems-count').innerText = "0";
+
+    document.getElementById('knight-icon').innerText = '🤺';
+    document.getElementById('dragon-icon').innerText = '🐉';
+
+    showScreen('screen-game');
+    startTimer();
+    renderQuestion();
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        secondsElapsed++;
+        document.getElementById('timer').innerText = `TIEMPO: ${secondsElapsed}S`;
+    }, 1000);
+}
+
+function renderQuestion() {
+    const q = selectedQuestions[currentIndex];
+    document.getElementById('question-number').innerText = `ENIGMA ${currentIndex + 1} DE 5`;
+    document.getElementById('question-text').innerText = q.pregunta;
+    
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    
+    const feedbackBox = document.getElementById('feedback');
+    feedbackBox.style.display = 'none';
+    document.getElementById('next-btn').style.display = 'none';
+
+    const shuffledOptions = shuffleArray([...q.opciones]);
+
+    shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, opt, q.correcta);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(selectedBtn, selectedOpt, correctOpt) {
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(btn => btn.disabled = true);
+
+    const feedbackBox = document.getElementById('feedback');
+    feedbackBox.style.display = 'block';
+
+    const dragon = document.getElementById('dragon-icon');
+    const knight = document.getElementById('knight-icon');
+
+    if (selectedOpt === correctOpt) {
+        selectedBtn.classList.add('correct');
+        score += 20;
+        gemsCollected++;
+
+        document.getElementById(`gem-${gemsCollected}`).classList.add('acquired');
+        document.getElementById('gems-count').innerText = gemsCollected;
+
+        dragon.classList.add('hit-dragon');
+        setTimeout(() => dragon.classList.remove('hit-dragon'), 500);
+
+        feedbackBox.innerHTML = "<span style='color: #4ade80;'>¡RESPUESTA CORRECTA! HAS OBTENIDO UNA GEMA Y EL CABALLERO HA GOLPEADO AL DRAGÓN.</span>";
+    } else {
+        selectedBtn.classList.add('incorrect');
+        buttons.forEach(btn => {
+            if (btn.innerText === correctOpt) {
+                btn.classList.add('correct');
+            }
+        });
+
+        dragon.classList.add('fire-dragon');
+        setTimeout(() => dragon.classList.remove('fire-dragon'), 800);
+
+        feedbackBox.innerHTML = `<span style='color: #f87171;'>RESPUESTA INCORRECTA. EL DRAGÓN ATACA AL CABALLERO.</span><br><br>LA RESPUESTA CORRECTA ERA:<br><strong>${correctOpt}</strong>`;
+    }
+
+    const nextBtn = document.getElementById('next-btn');
+    if (currentIndex === 4) {
+        nextBtn.innerText = "ENFRENTAR EL DESTINO FINAL";
+    } else {
+        nextBtn.innerText = "SIGUIENTE ENIGMA";
+    }
+    nextBtn.style.display = 'block';
+}
+
+function nextQuestion() {
+    currentIndex++;
+    if (currentIndex < selectedQuestions.length) {
+        renderQuestion();
+    } else {
+        triggerFinalInteraction();
+    }
+}
+
+function triggerFinalInteraction() {
+    clearInterval(timerInterval);
+
+    if (gemsCollected >= 4) {
+        const swordOverlay = document.getElementById('sword-overlay');
+        swordOverlay.classList.add('active-sword');
+
+        setTimeout(() => {
+            swordOverlay.classList.remove('active-sword');
+            showResults();
+            saveResult();
+        }, 2200);
+    } else {
+        const fireOverlay = document.getElementById('fire-overlay');
+        fireOverlay.classList.add('active-fire');
+
+        setTimeout(() => {
+            fireOverlay.classList.remove('active-fire');
+            showResults();
+            saveResult();
+        }, 2200);
+    }
+}
+
+async function saveResult() {
+    if (resultSaved) return;
+    const status = document.getElementById('save-status');
+    status.style.color = '#fbbf24';
+    status.innerText = 'GUARDANDO RESULTADO...';
+    try {
+        const { error } = await supabaseClient.from('resultados_trivia').insert({
+            nombre: playerName,
+            area: playerArea,
+            puntaje: gemsCollected,
+            total: 5,
+            mejor_racha: 0,
+            puntos: score,
+            tiempo_segundos: secondsElapsed
+        });
+        if (error) throw error;
+        resultSaved = true;
+        status.style.color = '#4ade80';
+        status.innerText = 'RESULTADO GUARDADO CORRECTAMENTE.';
+    } catch (error) {
+        console.error('Error al guardar el resultado:', error);
+        status.style.color = '#f87171';
+        status.innerHTML = 'NO SE PUDO GUARDAR EL RESULTADO. VERIFICA LA CONEXIÓN.';
+        const retry = document.createElement('button');
+        retry.className = 'btn';
+        retry.style.marginTop = '12px';
+        retry.innerText = 'REINTENTAR GUARDADO';
+        retry.onclick = () => { retry.remove(); saveResult(); };
+        status.appendChild(retry);
+    }
+}
+
+function showResults() {
+    showScreen('screen-results');
+    const title = document.getElementById('result-title');
+    const anim = document.getElementById('final-animation');
+
+    if (gemsCollected >= 4) {
+        anim.innerHTML = "🤺⚔️🐉💀";
+        title.innerHTML = "<span style='color: #4ade80;'>¡EL CABALLERO HA ASESINADO AL DRAGÓN!</span>";
+        document.getElementById('final-stats').innerHTML = `JUGADOR: <strong>${escapeHtml(playerName)}</strong> (${playerArea})<br>GEMAS REUNIDAS: <strong>${gemsCollected} / 5 💎</strong><br>PUNTAJE FINAL: <strong>${score} PTS</strong> | TIEMPO: <strong>${secondsElapsed}S</strong><br><br><span style='color: #38bdf8;'>¡CON EL PODER DE LAS GEMAS FORJASTE LA ESPADA DE LUZ, EL CABALLERO DERROTÓ AL DRAGÓN Y ESCAPARON DE LA MAZMORRA!</span>`;
+    } else {
+        anim.innerHTML = "🐉🔥🤺💀";
+        title.innerHTML = "<span style='color: #f87171;'>¡EL CABALLERO FUE QUEMADO POR EL DRAGÓN!</span>";
+        document.getElementById('final-stats').innerHTML = `JUGADOR: <strong>${escapeHtml(playerName)}</strong> (${playerArea})<br>GEMAS REUNIDAS: <strong>${gemsCollected} / 5 💎</strong><br>PUNTAJE FINAL: <strong>${score} PTS</strong> | TIEMPO: <strong>${secondsElapsed}S</strong><br><br><span style='color: #ef4444;'>NO CONSEGUISTE LAS 4 GEMAS MÍNIMAS. EL DRAGÓN DESATÓ SU RÁFAGA CATASTRAL Y QUEMÓ POR COMPLETO AL CABALLERO. ¡INTÉNTALO DE NUEVO!</span>`;
+    }
+
+    // Los resultados generales se consultan de forma privada en Supabase.
+}
+
+
+function restartGame() {
+    showScreen('screen-welcome');
+}
+
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value || '');
+    return div.innerHTML;
+}
+function shuffleArray(array) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+</script>
+
+</body>
+</html>
